@@ -188,10 +188,7 @@ const favorites =
 
         ) : (
 
-          <Countdown
-            hours={hours}
-          />
-
+          <Countdown endsAt={endsAt} />
         )}
 
         {/* INPUT */}

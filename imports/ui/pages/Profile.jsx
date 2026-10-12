@@ -1,24 +1,11 @@
-import React
-from "react";
-
-import {
-  useTracker
-}
-from "meteor/react-meteor-data";
-
-import { Meteor }
-from "meteor/meteor";
-
-import {
-  Auctions
-}
-from "../../api/Auctions";
+import React from "react";
+import {  useTracker } from "meteor/react-meteor-data";
+import { Meteor } from "meteor/meteor";
+import {  Auctions } from "../../api/Auctions";
 
 export const Profile = () => {
 
-  // USER
-  const user =
-    useTracker(() => {
+  const user = useTracker(() => {
 
       Meteor.subscribe(
         "allUsers"
@@ -32,7 +19,7 @@ export const Profile = () => {
 
     });
 
-  // MIS SUBASTAS
+  
   const myAuctions =
     useTracker(() => {
 
@@ -44,17 +31,15 @@ export const Profile = () => {
       }).fetch();
 
     });
-
-  // FAVORITOS
-  const favorites =
+const favorites =
     user?.profile
     ?.favorites
     || [];
 
-  // CARRITO
+ 
   const cart =
     user?.profile
-    ?.cart
+    ?.cart 
     || [];
 
   if (!user) {

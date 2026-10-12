@@ -1,6 +1,6 @@
 import React from "react";
-import { BrowserRouter, Routes, Route }from "react-router-dom";
-import { Navbar } from "../components/Navbar";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import Navbar from "../components/Navbar";
 import { Home } from "../pages/Home";
 import { Login } from "../pages/Login";
 import { Register } from "../pages/Register";
@@ -15,81 +15,46 @@ import { Footer } from "../components/Footer";
 import { useTracker } from "meteor/react-meteor-data";
 import { Meteor } from "meteor/meteor";
 
-
 export const MainLayout = () => {
   const user = useTracker(() => Meteor.user());
 
   return (
-
     <BrowserRouter>
+      <div className="app-shell">
+        <Navbar user={user} />
 
-      <Navbar user={user}/>
+        <main className="app-main">
+          <Routes>
+            <Route path="/" element={<Home />} />
 
-      <Routes>
+            <Route path="/login" element={<Login />} />
 
-        <Route
-          path="/"
-          element={<Home />}
-        />
+            <Route path="/register" element={<Register />} />
 
-        <Route
-          path="/login"
-          element={<Login />}
-        />
+            <Route path="/catalog" element={<Catalog />} />
 
-        <Route
-          path="/register"
-          element={<Register />}
-        />
+            <Route
+              path="/create-auction"
+              element={<CreateAuction />}
+            />
 
-        <Route
-          path="/catalog"
-          element={<Catalog />}
-        />
+            <Route path="/profile" element={<Profile />} />
 
-        <Route
-          path="/create-auction"
-          element={
-            <CreateAuction />
-          }
-        />
+            <Route path="/admin" element={<AdminPanel />} />
 
-        <Route
-          path="/profile"
-          element={<Profile />}
-        />
+            <Route path="/favorites" element={<Favorites />} />
 
-        <Route
-          path="/admin"
-          element={
-            <AdminPanel />
-          }
-        />
+            <Route path="/cart" element={<Cart />} />
 
-        <Route
-          path="/favorites"
-          element={
-            <Favorites />
-          }
-        />
+            <Route
+              path="/auction/:id"
+              element={<AuctionDetails />}
+            />
+          </Routes>
+        </main>
 
-        <Route
-          path="/cart"
-          element={<Cart />}
-        />
-
-        <Route
-          path="/auction/:id"
-          element={
-            <AuctionDetails />
-          }
-        />
-
-      </Routes>
-      <Footer />
-
+        <Footer />
+      </div>
     </BrowserRouter>
-
   );
-
 };

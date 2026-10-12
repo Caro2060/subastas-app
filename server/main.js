@@ -1,148 +1,133 @@
 import { Meteor } from "meteor/meteor";
-import "../imports/api/usersMethods";
-import "../imports/api/Auctions";
+import { Accounts } from "meteor/accounts-base";
+import { Auctions } from "../imports/api/Auctions";
+
 import "../imports/api/auctionMethods";
-import { Auctions } from "../imports/api/Auctions.js";
+import "../imports/api/usersMethods";
 
-Meteor.publish("allUsers", function () {
+// Configuración de nuevos usuarios
+Accounts.onCreateUser((options, user) => ({
+  ...user,
+  profile: {
+    ...(options.profile || {}),
+    username:
+      user.username ||
+      options.profile?.username ||
+      "Usuario",
+    role: "user",
+    favorites: [],
+    cart: [],
+  },
+}));
 
-  return Meteor.users.find(
+// Publicación del catálogo de subastas
+Meteor.publish("allAuctions", function () {
+  return Auctions.find(
     {},
     {
       fields: {
-        emails: 1,
-        profile: 1
-      }
+        title: 1,
+        price: 1,
+        startingPrice: 1,
+        image: 1,
+        description: 1,
+        category: 1,
+        condition: 1,
+        createdAt: 1,
+        endsAt: 1,
+        status: 1,
+        owner: 1,
+        ownerName: 1,
+        lastBidBy: 1,
+        bids: 1,
+      },
     }
   );
-
 });
 
-Meteor.publish("auctions", function () {
-
-  return Auctions.find();
-
-});
-Meteor.publish( "allUsers", function () {
-
-    return Meteor.users.find(
-
-      {},
-
-      {
-
-        fields: {
-
-          emails: 1
-
-        }
-
-      }
-
-    );
-
+// Datos del usuario conectado
+Meteor.publish("myUserData", function () {
+  if (!this.userId) {
+    return this.ready();
   }
-
-);
-Meteor.startup(async () => {
-
-  const admin =
-    await Meteor.users.findOneAsync({
-
-      "emails.address":
-        "admin@admin.com"
-
-    });
-
-  if (!admin) {
-
-    Accounts.createUser({
-
-      email:
-        "admin@admin.com",
-
-      password:
-        "admin123",
-
-      profile: {
-
-        username:
-          "Administrador",
-
-        role:
-          "admin"
-
-      }
-
-    });
-
-  }
-
-});
-Meteor.methods({
-
-  deleteUser(userId) {
-
-    const user =
-      Meteor.user();
-
-    if (
-      user?.profile
-      ?.role !== "admin"
-    ) {
-
-      throw new Meteor.Error(
-        "No autorizado"
-      );
-
-    }
-
-    Meteor.users.remove(
-      userId
-    );
-
-  }
-
-});
-Meteor.startup(() => {
-
-  Meteor.setInterval(async () => {
-
-    const now = new Date();
-
-    await Auctions.updateAsync(
-
-      {
-        endsAt: { $lt: now },
-        status: { $ne: "finalizada" }
-      },
-
-      {
-        $set: {
-          status: "finalizada"
-        }
-      },
-
-      { multi: true }
-
-    );
-
-  }, 5000);
-
-});
-import { Meteor } from "meteor/meteor";
-
-Meteor.publish("userData", function () {
-  if (!this.userId) return this.ready();
 
   return Meteor.users.find(
     { _id: this.userId },
     {
       fields: {
-        profile: 1,
         username: 1,
-        emails: 1
-      }
+        emails: 1,
+        profile: 1,
+      },
     }
   );
 });
+
+// Usuarios visibles para administradores
+Meteor.publish("adminUsers", async function () {
+  if (!this.userId) {
+    return this.ready();
+  }
+
+  const currentUser = await Meteor.users.findOneAsync(
+    { _id: this.userId },
+    { fields: { "profile.role": 1 } }
+  );
+
+  if (currentUser?.profile?.role !== "admin") {
+    return this.ready();
+  }
+
+  return Meteor.users.find(
+    {},
+    {
+      fields: {
+        username: 1,
+        emails: 1,
+        profile: 1,
+      },
+    }
+  );
+});
+
+// Subastas visibles para administradores
+Meteor.publish("adminAuctions", async function () {
+  if (!this.userId) {
+    return this.ready();
+  }
+
+  const currentUser = await Meteor.users.findOneAsync(
+    { _id: this.userId },
+    { fields: { "profile.role": 1 } }
+  );
+
+  if (currentUser?.profile?.role !== "admin") {
+    return this.ready();
+  }
+
+  return Auctions.find();
+});
+
+// Actualizar el estado de las subastas vencidas
+Meteor.startup(() => {
+  Meteor.setInterval(async () => {
+    try {
+      await Auctions.updateAsync(
+        {
+          endsAt: { $lte: new Date() },
+          status: { $ne: "finalizada" },
+        },
+        {
+          $set: { status: "finalizada" },
+        },
+        { multi: true }
+      );
+    } catch (error) {
+      console.error(
+        "Error al actualizar las subastas:",
+        error
+      );
+    }
+  }, 5000);
+});
+

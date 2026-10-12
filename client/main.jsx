@@ -2,6 +2,7 @@ import React from "react";
 import { createRoot } from "react-dom/client";
 import { Meteor } from "meteor/meteor";
 import "./main.css";
+import "./front-refesh.css";
 import { MainLayout } from "../imports/ui/layouts/MainLayout";
 import { Toaster } from "react-hot-toast";
 

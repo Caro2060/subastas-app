@@ -24,61 +24,48 @@ export const CreateAuction = () => {
   const [image, setImage] =
     useState("");
   
-  const handleImage = (e) => {
-    const file =
-      e.target.files[0];
+    const [minutes, setMinutes] = useState("");
 
-    if (!file) return;
+  const handleSubmit = (e) => {
+  e.preventDefault();
 
-    const imageURL =
-      URL.createObjectURL(file);
+  const durationMinutes =
+    Number(hours) * 60 + Number(minutes);
 
-    setImage(imageURL);
+  if (durationMinutes < 1) {
+    alert("La duración debe ser de al menos un minuto.");
+    return;
+  }
 
-  };
-
-  
-  const handleSubmit = () => {
-
-    Meteor.call(
-
-      "createAuction",
-
-      {
-        title,
-        price: Number(price),
-        image,
-        hours: Number(hours),
-        description,
-        category,
-        condition
-
-      },
-
-      (error) => {
-
-        if (error) {
-
-          alert(error.reason);
-
-        } else {
-
-          alert(
-            "Subasta creada"
-          );
-
-          setTitle("");
-          setPrice("");
-          setHours("");
-          setImage("");
-
-        }
-
+  Meteor.call(
+    "createAuction",
+    {
+      title,
+      price: Number(price),
+      image,
+      description,
+      category,
+      condition,
+      durationMinutes,
+    },
+    (error) => {
+      if (error) {
+        alert(error.reason || "No se pudo crear la subasta.");
+        return;
       }
 
-    );
-
-  };
+      alert("Subasta creada.");
+      setTitle("");
+      setPrice("");
+      setHours("");
+      setMinutes("");
+      setImage("");
+      setDescription("");
+      setCategory("");
+      setCondition("");
+    }
+  );
+};
 
   return (
 
@@ -122,6 +109,14 @@ export const CreateAuction = () => {
             setHours(e.target.value)
           }
         />
+        <input
+  type="number"
+  min="0"
+  max="59"
+  placeholder="Minutos"
+  value={minutes}
+  onChange={(e) => setMinutes(e.target.value)}
+/>
 <select
 
   value={category}
@@ -178,14 +173,35 @@ export const CreateAuction = () => {
   onChange={(e) =>
     setDescription(e.target.value)
   }
-/>
-        {/* IMAGEN */}
+></textarea>
+<label htmlFor="auction-image">
+  URL de la imagen
+</label>
 
-        <input
-          type="file"
-          accept="image/*"
-          onChange={handleImage}
-        />
+<input
+  type="url"
+  placeholder="https://sitio.com/imagen.jpg"
+  value={image}
+  onChange={(e) => setImage(e.target.value)}
+/>
+
+<p className="image-help">
+  Pega el enlace directo de una imagen alojada en internet.
+</p>
+
+{image && (
+  <img
+    src={image}
+    alt="Vista previa del producto"
+    className="auction-image-preview"
+    onError={(e) => {
+      e.currentTarget.style.display = "none";
+    }}
+    onLoad={(e) => {
+      e.currentTarget.style.display = "block";
+    }}
+  />
+)}
 
         {/* PREVIEW */}
 
